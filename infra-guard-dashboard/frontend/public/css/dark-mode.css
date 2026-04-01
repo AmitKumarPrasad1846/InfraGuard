@@ -1,0 +1,75 @@
+/* Dark Mode Styles */
+body.dark-mode {
+    --bg-primary: #0f172a;
+    --bg-secondary: #1e293b;
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --border-color: #334155;
+    --card-bg: #1e293b;
+    --hover-bg: #334155;
+}
+
+body.dark-mode {
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+body.dark-mode .sidebar {
+    background: var(--bg-secondary);
+    border-right: 1px solid var(--border-color);
+}
+
+body.dark-mode .header {
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+}
+
+body.dark-mode .stat-card,
+body.dark-mode .chart-card,
+body.dark-mode .sensor-card,
+body.dark-mode .control-panel {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+}
+
+body.dark-mode .nav-item {
+    color: var(--text-secondary);
+}
+
+body.dark-mode .nav-item:hover {
+    background: var(--hover-bg);
+    color: var(--text-primary);
+}
+
+body.dark-mode .nav-item.active {
+    background: linear-gradient(90deg, #2563eb, #1d4ed8);
+    color: white;
+}
+
+body.dark-mode .btn-secondary {
+    background: var(--hover-bg);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+body.dark-mode input,
+body.dark-mode select {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+body.dark-mode .toast {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+/* Login page dark mode */
+body.dark-mode .login-box {
+    background: var(--bg-secondary);
+}
+
+body.dark-mode .login-image {
+    opacity: 0.9;
+}

@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InfraGuard - Map View</title>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+
+    <!-- AOS Animation -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+
+    <style>
+        /* Map specific styles */
+        .map-container {
+            display: flex;
+            gap: 1.5rem;
+            min-height: calc(100vh - 200px);
+        }
+
+        .map-wrapper {
+            flex: 3;
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+            border: 1px solid #e2e8f0;
+            position: relative;
+        }
+
+        body.dark-mode .map-wrapper {
+            background: #1e293b;
+            border-color: #334155;
+        }
+
+        #map {
+            height: calc(100vh - 200px);
+            width: 100%;
+            background: #f8fafc;
+        }
+
+        body.dark-mode #map {
+            background: #0f172a;
+        }
+
+        .map-sidebar {
+            flex: 1;
+            background: white;
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+            border: 1px solid #e2e8f0;
+            overflow-y: auto;
+            max-height: calc(100vh - 200px);
+        }
+
+        body.dark-mode .map-sidebar {
+            background: #1e293b;
+            border-color: #334155;
+        }
+
+        .map-sidebar h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        body.dark-mode .map-sidebar h3 {
+            color: #f1f5f9;
+        }
+
+        .map-sidebar h3 i {
+            color: var(--primary);
+        }
+
+        .node-list-map {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .map-node-item {
+            padding: 0.75rem;
+            background: #f8fafc;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 1px solid #e2e8f0;
+        }
+
+        body.dark-mode .map-node-item {
+            background: #0f172a;
+            border-color: #334155;
+        }
+
+        .map-node-item:hover {
+            transform: translateX(4px);
+            border-color: var(--primary);
+        }
+
+        .map-node-item.active {
+            border-color: var(--primary);
+            background: rgba(37, 99, 235, 0.1);
+        }
+
+        .map-node-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .map-node-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+        }
+
+        .map-node-icon.online {
+            background: rgba(34, 197, 94, 0.1);
+            color: var(--success);
+        }
+
+        .map-node-icon.warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+
+        .map-node-icon.critical {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        .map-node-info {
+            flex: 1;
+        }
+
+        .map-node-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #1e293b;
+        }
+
+        body.dark-mode .map-node-name {
+            color: #f1f5f9;
+        }
+
+        .map-node-location {
+            font-size: 0.7rem;
+            color: #64748b;
+        }
+
+        .map-node-status {
+            font-size: 0.7rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 20px;
+            background: #e2e8f0;
+        }
+
+        .map-node-status.online {
+            background: rgba(34, 197, 94, 0.2);
+            color: var(--success);
+        }
+
+        .map-node-status.warning {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--warning);
+        }
+
+        .map-node-status.critical {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+        }
+
+        .map-node-details {
+            margin-top: 0.5rem;
+            padding-top: 0.5rem;
+            border-top: 1px solid #e2e8f0;
+            font-size: 0.75rem;
+        }
+
+        body.dark-mode .map-node-details {
+            border-top-color: #334155;
+        }
+
+        .map-node-details p {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.25rem;
+        }
+
+        .map-controls {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        body.dark-mode .map-controls {
+            border-top-color: #334155;
+        }
+
+        .map-control-btn {
+            width: 100%;
+            padding: 0.6rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            transition: all 0.3s;
+        }
+
+        .map-control-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .map-control-btn.secondary {
+            background: #64748b;
+        }
+
+        .map-control-btn.secondary:hover {
+            background: #475569;
+        }
+
+        .legend {
+            margin-top: 1rem;
+            padding: 0.75rem;
+            background: #f8fafc;
+            border-radius: 12px;
+        }
+
+        body.dark-mode .legend {
+            background: #0f172a;
+        }
+
+        .legend h4 {
+            font-size: 0.8rem;
+            margin-bottom: 0.5rem;
+            color: #64748b;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .legend-color.online {
+            background: var(--success);
+        }
+
+        .legend-color.warning {
+            background: var(--warning);
+        }
+
+        .legend-color.critical {
+            background: var(--danger);
+        }
+
+        .legend-color.marker {
+            background: var(--primary);
+        }
+
+        @media (max-width: 992px) {
+            .map-container {
+                flex-direction: column;
+            }
+
+            .map-wrapper {
+                flex: auto;
+            }
+
+            .map-sidebar {
+                flex: auto;
+                max-height: 400px;
+            }
+
+            #map {
+                height: 400px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>InfraGuard</span>
+                </div>
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+            </div>
+
+            <div class="sidebar-user">
+                <div class="user-avatar">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <div class="user-info">
+                    <div class="user-name" id="sidebarUserName">Admin</div>
+                    <div class="user-role" id="sidebarUserRole">Administrator</div>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Main</div>
+                    <a href="/dashboard" class="nav-item">
+                        <i class="fas fa-home"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="/analytics" class="nav-item">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Analytics</span>
+                    </a>
+                    <a href="/alerts" class="nav-item">
+                        <i class="fas fa-bell"></i>
+                        <span>Alerts</span>
+                        <span class="nav-badge alert" id="alertBadge">0</span>
+                    </a>
+                    <a href="/map" class="nav-item active">
+                        <i class="fas fa-map"></i>
+                        <span>Map View</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Management</div>
+                    <a href="/nodes" class="nav-item">
+                        <i class="fas fa-microchip"></i>
+                        <span>Nodes</span>
+                        <span class="nav-badge" id="nodeBadge">1</span>
+                    </a>
+                    <a href="/settings" class="nav-item">
+                        <i class="fas fa-cog"></i>
+                        <span>Settings</span>
+                    </a>
+                    <a href="/profile" class="nav-item">
+                        <i class="fas fa-user"></i>
+                        <span>Profile</span>
+                    </a>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="system-status">
+                    <div class="status-item">
+                        <span class="status-label">System</span>
+                        <span class="status-value online" id="systemStatus">Online</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">ESP32</span>
+                        <span class="status-value" id="espStatus">Connected</span>
+                    </div>
+                </div>
+
+                <button class="logout-btn" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <div class="header-left">
+                    <button class="menu-toggle" id="menuToggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="page-title">
+                        <h1>Map View</h1>
+                        <div class="breadcrumb">
+                            <span>Home</span>
+                            <i class="fas fa-chevron-right"></i>
+                            <span class="current">Map View</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="header-right">
+                    <div class="header-search">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Search location..." id="locationSearch"
+                            onkeyup="searchLocation()">
+                    </div>
+
+                    <div class="header-notifications">
+                        <button class="notif-btn" onclick="window.location.href='/alerts'">
+                            <i class="fas fa-bell"></i>
+                            <span class="notif-badge" id="headerAlertBadge">0</span>
+                        </button>
+                    </div>
+
+                    <div class="header-user" onclick="window.location.href='/profile'">
+                        <img src="https://ui-avatars.com/api/?name=Admin&background=2563eb&color=fff" alt="User">
+                        <div class="user-details">
+                            <span class="user-name" id="headerUserName">Admin</span>
+                            <span class="user-role" id="headerUserRole">Administrator</span>
+                        </div>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content -->
+            <div class="content">
+                <div class="map-container" data-aos="fade-up">
+                    <div class="map-wrapper">
+                        <div id="map"></div>
+                    </div>
+                    <div class="map-sidebar" data-aos="fade-up" data-aos-delay="100">
+                        <h3><i class="fas fa-microchip"></i> Infrastructure Nodes</h3>
+                        <div class="node-list-map" id="nodeListMap"></div>
+
+                        <div class="map-controls">
+                            <button class="map-control-btn" onclick="centerMap()">
+                                <i class="fas fa-crosshairs"></i> Center Map
+                            </button>
+                            <button class="map-control-btn secondary" onclick="resetMapView()">
+                                <i class="fas fa-globe"></i> Reset View
+                            </button>
+                        </div>
+
+                        <div class="legend">
+                            <h4>Legend</h4>
+                            <div class="legend-item">
+                                <div class="legend-color online"></div>
+                                <span>Node Online</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color warning"></div>
+                                <span>Warning Status</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color critical"></div>
+                                <span>Critical Alert</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color marker"></div>
+                                <span>Node Location</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+
+    <!-- AOS -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
+    <!-- Custom JS -->
+    <script src="/js/auth.js"></script>
+
+    <script>
+        // Initialize AOS
+        AOS.init({
+            duration: 800,
+            once: true
+        });
+
+        // Sidebar Toggle
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const menuToggle = document.getElementById('menuToggle');
+
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('collapsed');
+            });
+        }
+
+        if (menuToggle) {
+            menuToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('active');
+            });
+        }
+
+        // Logout function
+        function logout() {
+            localStorage.removeItem('infraguard_auth');
+            window.location.href = '/index.html';
+        }
+
+        // Update user info from localStorage
+        function updateUserInfo() {
+            const user = JSON.parse(localStorage.getItem('infraguard_user') || '{"name":"Admin","role":"Administrator"}');
+            document.getElementById('sidebarUserName').textContent = user.name;
+            document.getElementById('headerUserName').textContent = user.name;
+            document.getElementById('sidebarUserRole').textContent = user.role;
+            document.getElementById('headerUserRole').textContent = user.role;
+        }
+
+        // Node data with coordinates
+        const nodes = [
+            {
+                id: 1,
+                name: 'Bridge A - Main Span',
+                location: 'Downtown Bridge',
+                lat: 40.7128,
+                lng: -74.0060,
+                status: 'online',
+                tilt: 2.3,
+                temp: 28,
+                humidity: 65,
+                lastUpdate: new Date()
+            },
+            {
+                id: 2,
+                name: 'Tunnel Section B',
+                location: 'Highway Tunnel',
+                lat: 40.7580,
+                lng: -73.9855,
+                status: 'warning',
+                tilt: 4.8,
+                temp: 32,
+                humidity: 78,
+                lastUpdate: new Date()
+            },
+            {
+                id: 3,
+                name: 'Dam Gate Control',
+                location: 'Hydroelectric Dam',
+                lat: 40.7489,
+                lng: -73.9680,
+                status: 'online',
+                tilt: 1.2,
+                temp: 22,
+                humidity: 55,
+                lastUpdate: new Date()
+            },
+            {
+                id: 4,
+                name: 'Power Substation',
+                location: 'Industrial Zone',
+                lat: 40.7306,
+                lng: -73.9352,
+                status: 'critical',
+                tilt: 6.5,
+                temp: 48,
+                humidity: 45,
+                lastUpdate: new Date()
+            },
+            {
+                id: 5,
+                name: 'Railway Overpass',
+                location: 'Rail Crossing',
+                lat: 40.6892,
+                lng: -74.0445,
+                status: 'online',
+                tilt: 1.8,
+                temp: 25,
+                humidity: 62,
+                lastUpdate: new Date()
+            },
+            {
+                id: 6,
+                name: 'Parking Structure',
+                location: 'City Center',
+                lat: 40.7549,
+                lng: -73.9840,
+                status: 'warning',
+                tilt: 3.2,
+                temp: 29,
+                humidity: 70,
+                lastUpdate: new Date()
+            }
+        ];
+
+        let map;
+        let markers = [];
+        let currentPopup = null;
+
+        // Initialize map
+        function initMap() {
+            map = L.map('map').setView([40.7128, -74.0060], 12);
+
+            // Add tile layer (OpenStreetMap)
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; CartoDB',
+                subdomains: 'abcd',
+                maxZoom: 19
+            }).addTo(map);
+
+            // Add dark mode tile layer support (can be toggled)
+            if (document.body.classList.contains('dark-mode')) {
+                // Dark mode tiles would be applied here
+            }
+
+            // Add scale control
+            L.control.scale().addTo(map);
+
+            // Add geocoder search control
+            const geocoder = L.Control.geocoder({
+                defaultMarkGeocode: false,
+                position: 'topleft'
+            }).on('markgeocode', function (e) {
+                const bbox = e.geocode.bbox;
+                const center = e.geocode.center;
+                map.fitBounds(bbox);
+                L.marker(center).addTo(map)
+                    .bindPopup(e.geocode.name)
+                    .openPopup();
+            }).addTo(map);
+
+            // Add markers for each node
+            addNodeMarkers();
+        }
+
+        // Add node markers to map
+        function addNodeMarkers() {
+            nodes.forEach(node => {
+                // Determine marker color based on status
+                let markerColor = '#22c55e'; // online - green
+                if (node.status === 'warning') markerColor = '#f59e0b'; // warning - orange
+                if (node.status === 'critical') markerColor = '#ef4444'; // critical - red
+
+                // Create custom icon
+                const customIcon = L.divIcon({
+                    className: 'custom-marker',
+                    html: `<div style="background-color: ${markerColor}; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2);"></div>`,
+                    iconSize: [12, 12],
+                    popupAnchor: [0, -6]
+                });
+
+                const marker = L.marker([node.lat, node.lng], { icon: customIcon })
+                    .bindPopup(createPopupContent(node))
+                    .on('click', () => {
+                        highlightNodeInList(node.id);
+                        updateNodeDetails(node);
+                    });
+
+                marker.addTo(map);
+                markers.push({ marker, node });
+            });
+        }
+
+        // Create popup content for marker
+        function createPopupContent(node) {
+            const statusColor = node.status === 'online' ? 'green' : node.status === 'warning' ? 'orange' : 'red';
+            return `
+                <div style="min-width: 200px;">
+                    <h4 style="margin: 0 0 8px 0; color: #1e293b;">${node.name}</h4>
+                    <p style="margin: 4px 0; font-size: 12px; color: #64748b;">
+                        <i class="fas fa-map-marker-alt"></i> ${node.location}
+                    </p>
+                    <p style="margin: 4px 0; font-size: 12px;">
+                        <span style="color: ${statusColor}; font-weight: 600;">●</span> Status: ${node.status.toUpperCase()}
+                    </p>
+                    <hr style="margin: 8px 0;">
+                    <p style="margin: 4px 0; font-size: 12px;">
+                        <i class="fas fa-tilt"></i> Tilt: ${node.tilt}°
+                    </p>
+                    <p style="margin: 4px 0; font-size: 12px;">
+                        <i class="fas fa-temperature-high"></i> Temp: ${node.temp}°C
+                    </p>
+                    <p style="margin: 4px 0; font-size: 12px;">
+                        <i class="fas fa-tint"></i> Humidity: ${node.humidity}%
+                    </p>
+                    <button onclick="focusNode(${node.id})" style="margin-top: 8px; padding: 4px 12px; background: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 11px;">
+                        <i class="fas fa-search"></i> Focus
+                    </button>
+                </div>
+            `;
+        }
+
+        // Render node list in sidebar
+        function renderNodeList() {
+            const nodeList = document.getElementById('nodeListMap');
+            nodeList.innerHTML = nodes.map(node => `
+                <div class="map-node-item" onclick="focusNode(${node.id})" data-node-id="${node.id}">
+                    <div class="map-node-header">
+                        <div class="map-node-icon ${node.status}">
+                            <i class="fas fa-microchip"></i>
+                        </div>
+                        <div class="map-node-info">
+                            <div class="map-node-name">${node.name}</div>
+                            <div class="map-node-location">${node.location}</div>
+                        </div>
+                        <div class="map-node-status ${node.status}">${node.status.toUpperCase()}</div>
+                    </div>
+                    <div class="map-node-details">
+                        <p><span>Tilt:</span> <span>${node.tilt}°</span></p>
+                        <p><span>Temperature:</span> <span>${node.temp}°C</span></p>
+                        <p><span>Humidity:</span> <span>${node.humidity}%</span></p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Focus on a specific node
+        window.focusNode = function (nodeId) {
+            const node = nodes.find(n => n.id === nodeId);
+            if (node && map) {
+                map.setView([node.lat, node.lng], 16);
+
+                // Open popup for the marker
+                const markerObj = markers.find(m => m.node.id === nodeId);
+                if (markerObj) {
+                    markerObj.marker.openPopup();
+                }
+
+                highlightNodeInList(nodeId);
+                updateNodeDetails(node);
+                showToast(`Focusing on ${node.name}`, 'info');
+            }
+        };
+
+        // Highlight node in list
+        function highlightNodeInList(nodeId) {
+            const items = document.querySelectorAll('.map-node-item');
+            items.forEach(item => {
+                item.classList.remove('active');
+                if (item.getAttribute('data-node-id') == nodeId) {
+                    item.classList.add('active');
+                    item.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            });
+        }
+
+        // Update node details (can be extended)
+        function updateNodeDetails(node) {
+            // Additional functionality can be added here
+        }
+
+        // Center map on all nodes
+        window.centerMap = function () {
+            if (nodes.length > 0 && map) {
+                const bounds = L.latLngBounds(nodes.map(node => [node.lat, node.lng]));
+                map.fitBounds(bounds, { padding: [50, 50] });
+                showToast('Map centered on all nodes', 'info');
+            }
+        };
+
+        // Reset map view
+        window.resetMapView = function () {
+            if (map) {
+                map.setView([40.7128, -74.0060], 12);
+                showToast('Map view reset', 'info');
+            }
+        };
+
+        // Search location
+        window.searchLocation = function () {
+            const searchTerm = document.getElementById('locationSearch').value.toLowerCase();
+            if (!searchTerm) {
+                resetMapView();
+                renderNodeList();
+                return;
+            }
+
+            const filteredNodes = nodes.filter(node =>
+                node.name.toLowerCase().includes(searchTerm) ||
+                node.location.toLowerCase().includes(searchTerm)
+            );
+
+            if (filteredNodes.length > 0 && map) {
+                const bounds = L.latLngBounds(filteredNodes.map(node => [node.lat, node.lng]));
+                map.fitBounds(bounds, { padding: [50, 50] });
+
+                // Filter node list display
+                const nodeList = document.getElementById('nodeListMap');
+                nodeList.innerHTML = filteredNodes.map(node => `
+                    <div class="map-node-item" onclick="focusNode(${node.id})" data-node-id="${node.id}">
+                        <div class="map-node-header">
+                            <div class="map-node-icon ${node.status}">
+                                <i class="fas fa-microchip"></i>
+                            </div>
+                            <div class="map-node-info">
+                                <div class="map-node-name">${node.name}</div>
+                                <div class="map-node-location">${node.location}</div>
+                            </div>
+                            <div class="map-node-status ${node.status}">${node.status.toUpperCase()}</div>
+                        </div>
+                        <div class="map-node-details">
+                            <p><span>Tilt:</span> <span>${node.tilt}°</span></p>
+                            <p><span>Temperature:</span> <span>${node.temp}°C</span></p>
+                            <p><span>Humidity:</span> <span>${node.humidity}%</span></p>
+                        </div>
+                    </div>
+                `).join('');
+
+                showToast(`Found ${filteredNodes.length} matching nodes`, 'info');
+            }
+        };
+
+        // Show toast notification
+        function showToast(message, type = 'info') {
+            const toastContainer = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i>
+                <div class="toast-content">
+                    <div class="toast-title">${type.charAt(0).toUpperCase() + type.slice(1)}</div>
+                    <div class="toast-message">${message}</div>
+                </div>
+                <button class="toast-close" onclick="this.parentElement.remove()">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            toastContainer.appendChild(toast);
+            setTimeout(() => {
+                if (toast.parentElement) toast.remove();
+            }, 5000);
+        }
+
+        // Update alert badge count
+        function updateAlertBadge() {
+            const alertCount = nodes.filter(n => n.status === 'warning' || n.status === 'critical').length;
+            const alertBadges = document.querySelectorAll('#alertBadge, #headerAlertBadge');
+            alertBadges.forEach(badge => {
+                if (badge) badge.textContent = alertCount;
+            });
+        }
+
+        // Simulate real-time updates
+        function simulateRealTimeUpdates() {
+            setInterval(() => {
+                nodes.forEach(node => {
+                    // Randomly update tilt and temperature
+                    node.tilt = Number((Math.random() * 5 + 1).toFixed(1));
+                    node.temp = Number((22 + Math.random() * 15).toFixed(1));
+
+                    // Update status based on values
+                    if (node.tilt > 5 || node.temp > 40) {
+                        node.status = 'critical';
+                    } else if (node.tilt > 3 || node.temp > 35) {
+                        node.status = 'warning';
+                    } else {
+                        node.status = 'online';
+                    }
+                });
+
+                // Refresh markers and list
+                markers.forEach(m => m.marker.remove());
+                markers = [];
+                addNodeMarkers();
+                renderNodeList();
+                updateAlertBadge();
+
+            }, 30000); // Update every 30 seconds
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            updateUserInfo();
+            initMap();
+            renderNodeList();
+            updateAlertBadge();
+
+            // Simulate real-time updates
+            simulateRealTimeUpdates();
+
+            // Check authentication
+            const auth = localStorage.getItem('infraguard_auth');
+            if (!auth && window.location.pathname.includes('map.html')) {
+                // Optional: redirect to login if needed
+            }
+        });
+    </script>
+</body>
+
+</html>

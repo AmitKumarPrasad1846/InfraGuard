@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InfraGuard - Smart Infrastructure Monitoring System</title>
+
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/home.css">
+</head>
+
+<body>
+    <!-- Navbar -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <i class="fas fa-shield-alt"></i>
+                <span>InfraGuard</span>
+            </div>
+
+            <div class="nav-menu" id="navMenu">
+                <ul class="nav-links">
+                    <li><a href="#home" class="active">Home</a></li>
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#about">About</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                </ul>
+
+                <div class="nav-buttons">
+                    <a href="/login" class="btn btn-outline-light">Login</a>
+                    <a href="/dashboard" class="btn btn-primary">Dashboard</a>
+                </div>
+            </div>
+
+            <div class="nav-toggle" id="navToggle">
+                <i class="fas fa-bars"></i>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="hero-particles" id="particles"></div>
+        <div class="hero-container">
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <span class="badge-pulse"></span>
+                    <span>🚀 Live System • IIT Kanpur</span>
+                </div>
+
+                <h1 class="hero-title">
+                    Smart Infrastructure
+                    <span class="gradient-text">Monitoring System</span>
+                </h1>
+
+                <p class="hero-description">
+                    Real-time structural health monitoring, automated street lighting,
+                    and intelligent alert system for bridges, buildings, and highways.
+                </p>
+
+                <div class="hero-stats" id="liveStats">
+                    <div class="stat-item">
+                        <div class="stat-value" id="liveTilt">2.3°</div>
+                        <div class="stat-label">Current Tilt</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="liveTemp">32°C</div>
+                        <div class="stat-label">Temperature</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="liveRisk">
+                            <span class="risk-badge safe">SAFE</span>
+                        </div>
+                        <div class="stat-label">Risk Level</div>
+                    </div>
+                </div>
+
+                <div class="hero-cta">
+                    <a href="/dashboard" class="btn btn-primary btn-large">
+                        <i class="fas fa-chart-line"></i>
+                        Live Dashboard
+                    </a>
+                    <a href="#features" class="btn btn-outline-light btn-large">
+                        <i class="fas fa-play-circle"></i>
+                        See How It Works
+                    </a>
+                </div>
+            </div>
+
+            <div class="hero-visual">
+                <div class="visual-card">
+                    <div class="visual-header">
+                        <div class="visual-dots">
+                            <span></span><span></span><span></span>
+                        </div>
+                        <span>Live Preview</span>
+                    </div>
+                    <div class="visual-content">
+                        <div class="sensor-grid-mini">
+                            <div class="sensor-item">
+                                <i class="fas fa-tilt"></i>
+                                <span>Tilt</span>
+                                <strong id="miniTilt">2.3°</strong>
+                            </div>
+                            <div class="sensor-item">
+                                <i class="fas fa-temperature-high"></i>
+                                <span>Temp</span>
+                                <strong id="miniTemp">32°C</strong>
+                            </div>
+                            <div class="sensor-item">
+                                <i class="fas fa-tint"></i>
+                                <span>Humidity</span>
+                                <strong id="miniHumidity">68%</strong>
+                            </div>
+                            <div class="sensor-item">
+                                <i class="fas fa-lightbulb"></i>
+                                <span>Light</span>
+                                <strong id="miniLight">ON</strong>
+                            </div>
+                        </div>
+                        <div class="visual-graph">
+                            <canvas id="miniGraph" width="300" height="100"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-subtitle">Why Choose Us</span>
+                <h2 class="section-title">Powerful Features</h2>
+                <p class="section-description">
+                    Everything you need to monitor and protect your infrastructure
+                </p>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-card" onclick="window.location.href='/features/structural'">
+                    <div class="feature-icon">
+                        <i class="fas fa-tilt"></i>
+                    </div>
+                    <h3>Structural Health</h3>
+                    <p>Real-time tilt and vibration monitoring with MPU6050 sensor. Detect potential failures before
+                        they happen.</p>
+                    <a href="/features/structural" class="feature-link">
+                        Learn More <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+
+                <div class="feature-card" onclick="window.location.href='/features/lighting'">
+                    <div class="feature-icon">
+                        <i class="fas fa-lightbulb"></i>
+                    </div>
+                    <h3>Smart Lighting</h3>
+                    <p>Automated street light control based on ambient light and motion detection. Save up to 60%
+                        energy.</p>
+                    <a href="/features/lighting" class="feature-link">
+                        Learn More <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+
+                <div class="feature-card" onclick="window.location.href='/features/environmental'">
+                    <div class="feature-icon">
+                        <i class="fas fa-cloud-rain"></i>
+                    </div>
+                    <h3>Environmental</h3>
+                    <p>Temperature, humidity, and rain detection for comprehensive weather monitoring and flood alerts.
+                    </p>
+                    <a href="/features/environmental" class="feature-link">
+                        Learn More <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+
+                <div class="feature-card" onclick="window.location.href='/features/traffic'">
+                    <div class="feature-icon">
+                        <i class="fas fa-car"></i>
+                    </div>
+                    <h3>Traffic Monitoring</h3>
+                    <p>PIR and ultrasonic sensors for vehicle detection, speed monitoring, and traffic pattern analysis.
+                    </p>
+                    <a href="/features/traffic" class="feature-link">
+                        Learn More <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+
+                <div class="feature-card" onclick="window.location.href='/features/alerts'">
+                    <div class="feature-icon">
+                        <i class="fas fa-bell"></i>
+                    </div>
+                    <h3>Smart Alerts</h3>
+                    <p>Multi-channel alerts via SMS, email, and dashboard notifications for critical conditions.</p>
+                    <a href="/features/alerts" class="feature-link">
+                        Learn More <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+
+                <div class="feature-card" onclick="window.location.href='/features/analytics'">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                    <h3>Advanced Analytics</h3>
+                    <p>Interactive charts, historical data analysis, and predictive maintenance insights.</p>
+                    <a href="/features/analytics" class="feature-link">
+                        Learn More <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <div class="features-cta">
+                <a href="/features" class="btn btn-outline-primary">
+                    View All Features <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="about">
+        <div class="container">
+            <div class="about-grid">
+                <div class="about-content">
+                    <span class="section-subtitle">About InfraGuard</span>
+                    <h2 class="section-title">Next-Gen Infrastructure Monitoring</h2>
+
+                    <p class="about-text">
+                        InfraGuard is an advanced IoT-based infrastructure monitoring system developed to ensure
+                        structural safety and environmental stability in real-time. Our system integrates multiple
+                        sensors including MPU6050 for tilt detection, DHT11 for temperature and humidity, LDR for
+                        light intensity, PIR for motion, and HC-SR04 for distance measurement.
+                    </p>
+
+                    <p class="about-text">
+                        All sensor data is processed by an ESP32 microcontroller and displayed on our web dashboard
+                        with real-time updates, interactive charts, and automatic alerts. The system automatically
+                        calculates risk levels based on tilt angles, temperature thresholds, and proximity alerts.
+                    </p>
+
+                    <div class="about-stats">
+                        <div class="about-stat">
+                            <span class="stat-number">24/7</span>
+                            <span class="stat-label">Monitoring</span>
+                        </div>
+                        <div class="about-stat">
+                            <span class="stat-number">6+</span>
+                            <span class="stat-label">Sensors</span>
+                        </div>
+                        <div class="about-stat">
+                            <span class="stat-number">99.8%</span>
+                            <span class="stat-label">Uptime</span>
+                        </div>
+                    </div>
+
+                    <a href="/about" class="btn btn-primary">
+                        Read Full Story <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+
+                <div class="about-image">
+                    <img src="/assets/images/infraguard-node.jpg" alt="InfraGuard Node"
+                        onerror="this.src='https://via.placeholder.com/500x400?text=InfraGuard+Node'">
+                    <div class="image-caption">
+                        <i class="fas fa-microchip"></i>
+                        <span>ESP32-based smart node with multiple sensors</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta">
+        <div class="container">
+            <div class="cta-content">
+                <h2>Ready to make your infrastructure smart?</h2>
+                <p>Join hundreds of organizations using InfraGuard for real-time monitoring</p>
+                <div class="cta-buttons">
+                    <a href="/dashboard" class="btn btn-primary btn-large">
+                        <i class="fas fa-chart-line"></i>
+                        Live Demo
+                    </a>
+                    <a href="/contact" class="btn btn-outline-light btn-large">
+                        <i class="fas fa-envelope"></i>
+                        Contact Us
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <div class="footer-logo">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>InfraGuard</span>
+                    </div>
+                    <p>Smart infrastructure monitoring for a safer tomorrow.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-github"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-linkedin"></i></a>
+                    </div>
+                </div>
+
+                <div class="footer-col">
+                    <h4>Features</h4>
+                    <ul>
+                        <li><a href="/features/structural">Structural Health</a></li>
+                        <li><a href="/features/lighting">Smart Lighting</a></li>
+                        <li><a href="/features/environmental">Environmental</a></li>
+                        <li><a href="/features/traffic">Traffic Monitoring</a></li>
+                        <li><a href="/features/alerts">Alert System</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h4>Company</h4>
+                    <ul>
+                        <li><a href="/about">About Us</a></li>
+                        <li><a href="/team">Team</a></li>
+                        <li><a href="/careers">Careers</a></li>
+                        <li><a href="/contact">Contact</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-col">
+                    <h4>Legal</h4>
+                    <ul>
+                        <li><a href="/privacy">Privacy Policy</a></li>
+                        <li><a href="/terms">Terms of Service</a></li>
+                        <li><a href="/cookies">Cookie Policy</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>&copy; 2026 InfraGuard. All rights reserved. | IIT Kanpur</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Chart.js for mini graph -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Custom JS -->
+    <script src="/js/main.js"></script>
+    <script src="/js/home.js"></script>
+</body>
+
+</html>

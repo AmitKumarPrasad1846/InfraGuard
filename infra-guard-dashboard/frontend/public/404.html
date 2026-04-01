@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InfraGuard - Page Not Found</title>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/404.css">
+</head>
+
+<body>
+    <div class="error-container">
+        <!-- Animated Background -->
+        <div class="error-bg">
+            <div class="gradient-circle circle-1"></div>
+            <div class="gradient-circle circle-2"></div>
+            <div class="gradient-circle circle-3"></div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="error-content">
+            <!-- Error Number with Animation -->
+            <div class="error-number">
+                <span class="digit">4</span>
+                <span class="digit zero">0</span>
+                <span class="digit">4</span>
+            </div>
+
+            <!-- Error Icon -->
+            <div class="error-icon">
+                <i class="fas fa-shield-alt"></i>
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+
+            <!-- Error Message -->
+            <h1 class="error-title">Page Not Found</h1>
+
+            <p class="error-message">
+                Oops! The page you're looking for doesn't exist or has been moved.
+                Our monitoring system couldn't detect this route in our infrastructure.
+            </p>
+
+            <!-- Search Bar -->
+            <div class="error-search">
+                <input type="text" id="searchInput" placeholder="Search for pages..." autocomplete="off">
+                <button onclick="searchPage()">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+
+            <!-- Quick Links -->
+            <div class="quick-links">
+                <h3>Quick Links</h3>
+                <div class="links-grid">
+                    <a href="/" class="quick-link">
+                        <i class="fas fa-home"></i>
+                        <span>Home</span>
+                    </a>
+                    <a href="/dashboard" class="quick-link">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="/analytics" class="quick-link">
+                        <i class="fas fa-chart-pie"></i>
+                        <span>Analytics</span>
+                    </a>
+                    <a href="/alerts" class="quick-link">
+                        <i class="fas fa-bell"></i>
+                        <span>Alerts</span>
+                    </a>
+                    <a href="/map" class="quick-link">
+                        <i class="fas fa-map"></i>
+                        <span>Map</span>
+                    </a>
+                    <a href="/settings" class="quick-link">
+                        <i class="fas fa-cog"></i>
+                        <span>Settings</span>
+                    </a>
+                    <a href="/profile" class="quick-link">
+                        <i class="fas fa-user"></i>
+                        <span>Profile</span>
+                    </a>
+                    <a href="/login" class="quick-link">
+                        <i class="fas fa-sign-in-alt"></i>
+                        <span>Login</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Help Section -->
+            <div class="help-section">
+                <p>Need assistance? Our infrastructure is 24/7 monitored</p>
+                <div class="help-buttons">
+                    <a href="/contact" class="btn btn-outline-primary">
+                        <i class="fas fa-envelope"></i>
+                        Contact Support
+                    </a>
+                    <button class="btn btn-primary" onclick="goBack()">
+                        <i class="fas fa-arrow-left"></i>
+                        Go Back
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="error-footer">
+            <div class="footer-stats">
+                <div class="footer-stat">
+                    <i class="fas fa-microchip"></i>
+                    <span>System Status:</span>
+                    <span class="status-badge online">Online</span>
+                </div>
+                <div class="footer-stat">
+                    <i class="fas fa-clock"></i>
+                    <span id="currentTime"></span>
+                </div>
+                <div class="footer-stat">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Protected by InfraGuard</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom JS -->
+    <script src="/js/404.js"></script>
+</body>
+
+</html>

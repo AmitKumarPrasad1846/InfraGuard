@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InfraGuard - IoT Nodes Management</title>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- AOS Animation -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+    <!-- Socket.IO -->
+    <script src="https://cdn.socket.io/4.5.0/socket.io.min.js"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/dashboard.css">
+
+    <style>
+        /* Nodes specific styles */
+        .nodes-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .nodes-header h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .nodes-header h2 i {
+            color: var(--primary);
+        }
+
+        body.dark-mode .nodes-header h2 {
+            color: #f1f5f9;
+        }
+
+        .nodes-stats {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .node-stat-badge {
+            padding: 0.5rem 1rem;
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        body.dark-mode .node-stat-badge {
+            background: #1e293b;
+            border-color: #334155;
+        }
+
+        .node-stat-badge i {
+            font-size: 1rem;
+        }
+
+        .node-stat-badge .count {
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: var(--primary);
+        }
+
+        .nodes-filters {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .nodes-filters select,
+        .nodes-filters input {
+            padding: 0.6rem 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            background: white;
+            font-family: inherit;
+            font-size: 0.9rem;
+            color: #1e293b;
+        }
+
+        body.dark-mode .nodes-filters select,
+        body.dark-mode .nodes-filters input {
+            background: #1e293b;
+            border-color: #334155;
+            color: #f1f5f9;
+        }
+
+        .nodes-filters input:focus,
+        .nodes-filters select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .nodes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .node-card {
+            background: white;
+            border-radius: 20px;
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        body.dark-mode .node-card {
+            background: #1e293b;
+            border-color: #334155;
+        }
+
+        .node-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .node-card.offline {
+            opacity: 0.6;
+        }
+
+        .node-status-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .node-status-badge.online {
+            background: rgba(34, 197, 94, 0.2);
+            color: var(--success);
+        }
+
+        .node-status-badge.offline {
+            background: rgba(100, 116, 139, 0.2);
+            color: #64748b;
+        }
+
+        .node-header {
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        body.dark-mode .node-header {
+            border-bottom-color: #334155;
+        }
+
+        .node-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            background: linear-gradient(135deg, #2563eb20, #1d4ed840);
+            color: var(--primary);
+        }
+
+        .node-info {
+            flex: 1;
+        }
+
+        .node-name {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 0.25rem;
+        }
+
+        body.dark-mode .node-name {
+            color: #f1f5f9;
+        }
+
+        .node-location {
+            font-size: 0.8rem;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .node-body {
+            padding: 1.5rem;
+        }
+
+        .sensor-readings {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .sensor-reading {
+            background: #f8fafc;
+            padding: 0.75rem;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        body.dark-mode .sensor-reading {
+            background: #0f172a;
+        }
+
+        .sensor-reading-label {
+            font-size: 0.7rem;
+            color: #64748b;
+            margin-bottom: 0.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.25rem;
+        }
+
+        .sensor-reading-value {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        body.dark-mode .sensor-reading-value {
+            color: #f1f5f9;
+        }
+
+        .sensor-reading-unit {
+            font-size: 0.7rem;
+            color: #64748b;
+        }
+
+        .node-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.7rem;
+            color: #94a3b8;
+            padding-top: 1rem;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        body.dark-mode .node-meta {
+            border-top-color: #334155;
+        }
+
+        .node-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .node-action-btn {
+            flex: 1;
+            padding: 0.5rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            background: white;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        body.dark-mode .node-action-btn {
+            background: #0f172a;
+            border-color: #334155;
+            color: #f1f5f9;
+        }
+
+        .node-action-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem;
+            background: white;
+            border-radius: 20px;
+            border: 1px solid #e2e8f0;
+        }
+
+        body.dark-mode .empty-state {
+            background: #1e293b;
+            border-color: #334155;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            color: #94a3b8;
+            margin-bottom: 1rem;
+        }
+
+        .empty-state h3 {
+            font-size: 1.2rem;
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+        }
+
+        body.dark-mode .empty-state h3 {
+            color: #f1f5f9;
+        }
+
+        .empty-state p {
+            color: #64748b;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: #64748b;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .offline .sensor-reading-value {
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @media (max-width: 768px) {
+            .nodes-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .nodes-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .nodes-filters {
+                width: 100%;
+                flex-direction: column;
+            }
+
+            .nodes-filters select,
+            .nodes-filters input {
+                width: 100%;
+            }
+
+            .sensor-readings {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>InfraGuard</span>
+                </div>
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+            </div>
+
+            <div class="sidebar-user">
+                <div class="user-avatar">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <div class="user-info">
+                    <div class="user-name" id="sidebarUserName">Admin</div>
+                    <div class="user-role" id="sidebarUserRole">Administrator</div>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Main</div>
+                    <a href="/dashboard" class="nav-item">
+                        <i class="fas fa-home"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="/analytics" class="nav-item">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Analytics</span>
+                    </a>
+                    <a href="/alerts" class="nav-item">
+                        <i class="fas fa-bell"></i>
+                        <span>Alerts</span>
+                        <span class="nav-badge alert" id="alertBadge">0</span>
+                    </a>
+                    <a href="/map" class="nav-item">
+                        <i class="fas fa-map"></i>
+                        <span>Map View</span>
+                    </a>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section-title">Management</div>
+                    <a href="/nodes" class="nav-item active">
+                        <i class="fas fa-microchip"></i>
+                        <span>Nodes</span>
+                        <span class="nav-badge" id="nodeBadge">0</span>
+                    </a>
+                    <a href="/settings" class="nav-item">
+                        <i class="fas fa-cog"></i>
+                        <span>Settings</span>
+                    </a>
+                    <a href="/profile" class="nav-item">
+                        <i class="fas fa-user"></i>
+                        <span>Profile</span>
+                    </a>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="system-status">
+                    <div class="status-item">
+                        <span class="status-label">System</span>
+                        <span class="status-value online" id="systemStatus">Online</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">ESP32</span>
+                        <span class="status-value" id="espStatus">Connecting...</span>
+                    </div>
+                </div>
+
+                <button class="logout-btn" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <div class="header-left">
+                    <button class="menu-toggle" id="menuToggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="page-title">
+                        <h1>IoT Nodes</h1>
+                        <div class="breadcrumb">
+                            <span>Home</span>
+                            <i class="fas fa-chevron-right"></i>
+                            <span class="current">Nodes</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="header-right">
+                    <div class="header-search">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Search nodes..." id="nodeSearch" onkeyup="searchNodes()">
+                    </div>
+
+                    <div class="header-notifications">
+                        <button class="notif-btn" onclick="window.location.href='/alerts'">
+                            <i class="fas fa-bell"></i>
+                            <span class="notif-badge" id="headerAlertBadge">0</span>
+                        </button>
+                    </div>
+
+                    <div class="header-user" onclick="window.location.href='/profile'">
+                        <img src="https://ui-avatars.com/api/?name=Admin&background=2563eb&color=fff" alt="User">
+                        <div class="user-details">
+                            <span class="user-name" id="headerUserName">Admin</span>
+                            <span class="user-role" id="headerUserRole">Administrator</span>
+                        </div>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content -->
+            <div class="content">
+                <div class="nodes-header" data-aos="fade-up">
+                    <h2><i class="fas fa-microchip"></i> Deployed IoT Nodes</h2>
+                    <div class="nodes-stats">
+                        <div class="node-stat-badge">
+                            <i class="fas fa-microchip"></i>
+                            <span class="count" id="totalNodes">0</span>
+                            <span>Total Nodes</span>
+                        </div>
+                        <div class="node-stat-badge">
+                            <i class="fas fa-circle" style="color: #22c55e;"></i>
+                            <span class="count" id="onlineNodes">0</span>
+                            <span>Online</span>
+                        </div>
+                        <div class="node-stat-badge">
+                            <i class="fas fa-circle" style="color: #64748b;"></i>
+                            <span class="count" id="offlineNodes">0</span>
+                            <span>Offline</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="nodes-filters" data-aos="fade-up" data-aos-delay="50">
+                    <select id="statusFilter" onchange="filterNodes()">
+                        <option value="all">All Status</option>
+                        <option value="online">Online</option>
+                        <option value="offline">Offline</option>
+                    </select>
+                    <select id="typeFilter" onchange="filterNodes()">
+                        <option value="all">All Types</option>
+                        <option value="bridge">Bridge Monitor</option>
+                        <option value="tunnel">Tunnel Monitor</option>
+                        <option value="dam">Dam Monitor</option>
+                        <option value="structure">Structure Monitor</option>
+                    </select>
+                    <button class="btn-primary" onclick="refreshNodes()">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                </div>
+
+                <div class="nodes-grid" id="nodesGrid" data-aos="fade-up" data-aos-delay="100">
+                    <div class="loading">Loading connected nodes...</div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- AOS -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
+    <script>
+        // Initialize AOS
+        AOS.init({
+            duration: 800,
+            once: true
+        });
+
+        // Sidebar Toggle
+        const sidebar = document.getElementById('sidebar');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const menuToggle = document.getElementById('menuToggle');
+
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('collapsed');
+            });
+        }
+
+        if (menuToggle) {
+            menuToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('active');
+            });
+        }
+
+        // Logout function
+        function logout() {
+            localStorage.removeItem('infraguard_auth');
+            window.location.href = '/index.html';
+        }
+
+        // Update user info
+        function updateUserInfo() {
+            const user = JSON.parse(localStorage.getItem('infraguard_user') || '{"name":"Admin","role":"Administrator"}');
+            document.getElementById('sidebarUserName').textContent = user.name;
+            document.getElementById('headerUserName').textContent = user.name;
+            document.getElementById('sidebarUserRole').textContent = user.role;
+            document.getElementById('headerUserRole').textContent = user.role;
+        }
+
+        // Node data - Only connected nodes will be shown
+        // In production, this would come from WebSocket/API
+        let nodes = [];
+        let socket = null;
+        let refreshInterval = null;
+
+        // Initialize Socket.IO connection
+        function initSocketConnection() {
+            try {
+                // Connect to WebSocket server (adjust URL as needed)
+                socket = io('http://localhost:3000', {
+                    transports: ['websocket'],
+                    reconnection: true,
+                    reconnectionAttempts: 10,
+                    reconnectionDelay: 1000
+                });
+
+                socket.on('connect', () => {
+                    console.log('WebSocket connected');
+                    updateSystemStatus('Online', true);
+                    showToast('Connected to node server', 'success');
+
+                    // Request node list
+                    socket.emit('get_nodes');
+                });
+
+                socket.on('disconnect', () => {
+                    console.log('WebSocket disconnected');
+                    updateSystemStatus('Offline', false);
+                    showToast('Disconnected from node server', 'error');
+
+                    // Show offline message in grid
+                    document.getElementById('nodesGrid').innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-plug"></i>
+                            <h3>Connection Lost</h3>
+                            <p>Attempting to reconnect to node server...</p>
+                        </div>
+                    `;
+                });
+
+                socket.on('nodes_list', (data) => {
+                    console.log('Received nodes list:', data);
+                    if (data && data.nodes) {
+                        // Only show nodes that are connected
+                        nodes = data.nodes.filter(node => node.connected === true);
+                        renderNodes();
+                        updateNodeStats();
+                    }
+                });
+
+                socket.on('node_update', (data) => {
+                    console.log('Node update:', data);
+                    // Update specific node in the list
+                    const index = nodes.findIndex(n => n.id === data.nodeId);
+                    if (index !== -1 && data.connected) {
+                        nodes[index] = { ...nodes[index], ...data.data, lastUpdate: new Date() };
+                        renderNodes();
+                        updateNodeStats();
+                    } else if (!data.connected) {
+                        // Node disconnected, remove from list
+                        nodes = nodes.filter(n => n.id !== data.nodeId);
+                        renderNodes();
+                        updateNodeStats();
+                        showToast(`Node ${data.nodeId} disconnected`, 'warning');
+                    }
+                });
+
+                socket.on('new_node', (data) => {
+                    console.log('New node connected:', data);
+                    if (data.node && data.node.connected) {
+                        nodes.push(data.node);
+                        renderNodes();
+                        updateNodeStats();
+                        showToast(`New node ${data.node.name} connected`, 'success');
+                    }
+                });
+
+                socket.on('node_disconnected', (data) => {
+                    console.log('Node disconnected:', data);
+                    nodes = nodes.filter(n => n.id !== data.nodeId);
+                    renderNodes();
+                    updateNodeStats();
+                    showToast(`Node ${data.nodeName || data.nodeId} disconnected`, 'warning');
+                });
+
+                socket.on('connect_error', (error) => {
+                    console.log('Connection error:', error);
+                    updateSystemStatus('Error', false);
+                    // Fallback to demo data if server not available
+                    loadFallbackData();
+                });
+
+            } catch (error) {
+                console.error('Socket initialization error:', error);
+                loadFallbackData();
+            }
+        }
+
+        // Fallback data for development/testing when server is not available
+        function loadFallbackData() {
+            showToast('Using demo mode - No active server connection', 'info');
+
+            // Simulate connected nodes (only show these if they were actually connected)
+            nodes = [
+                {
+                    id: 'ESP32_001',
+                    name: 'Bridge Monitor A1',
+                    type: 'bridge',
+                    location: 'Golden Bridge, Section 3',
+                    connected: true,
+                    lastSeen: new Date(),
+                    lastUpdate: new Date(),
+                    sensors: {
+                        tilt: { value: 2.3, unit: '°', status: 'normal' },
+                        temperature: { value: 28.5, unit: '°C', status: 'normal' },
+                        humidity: { value: 65, unit: '%', status: 'normal' },
+                        battery: { value: 87, unit: '%', status: 'good' }
+                    }
+                },
+                {
+                    id: 'ESP32_002',
+                    name: 'Tunnel Monitor B2',
+                    type: 'tunnel',
+                    location: 'North Tunnel, Entry Point',
+                    connected: true,
+                    lastSeen: new Date(),
+                    lastUpdate: new Date(),
+                    sensors: {
+                        tilt: { value: 1.8, unit: '°', status: 'normal' },
+                        temperature: { value: 32.0, unit: '°C', status: 'warning' },
+                        humidity: { value: 78, unit: '%', status: 'warning' },
+                        battery: { value: 92, unit: '%', status: 'good' }
+                    }
+                },
+                {
+                    id: 'ESP32_003',
+                    name: 'Dam Monitor C3',
+                    type: 'dam',
+                    location: 'Main Dam, Control Room',
+                    connected: true,
+                    lastSeen: new Date(),
+                    lastUpdate: new Date(),
+                    sensors: {
+                        tilt: { value: 1.2, unit: '°', status: 'normal' },
+                        temperature: { value: 22.0, unit: '°C', status: 'normal' },
+                        humidity: { value: 55, unit: '%', status: 'normal' },
+                        battery: { value: 76, unit: '%', status: 'good' }
+                    }
+                },
+                {
+                    id: 'ESP32_004',
+                    name: 'Power Substation D4',
+                    type: 'structure',
+                    location: 'Industrial Zone, Substation 7',
+                    connected: true,
+                    lastSeen: new Date(),
+                    lastUpdate: new Date(),
+                    sensors: {
+                        tilt: { value: 0.5, unit: '°', status: 'normal' },
+                        temperature: { value: 48.0, unit: '°C', status: 'critical' },
+                        humidity: { value: 45, unit: '%', status: 'normal' },
+                        battery: { value: 100, unit: '%', status: 'good' }
+                    }
+                },
+                {
+                    id: 'ESP32_005',
+                    name: 'Railway Monitor E5',
+                    type: 'bridge',
+                    location: 'Rail Crossing, Main Line',
+                    connected: true,
+                    lastSeen: new Date(),
+                    lastUpdate: new Date(),
+                    sensors: {
+                        tilt: { value: 1.1, unit: '°', status: 'normal' },
+                        temperature: { value: 25.0, unit: '°C', status: 'normal' },
+                        humidity: { value: 62, unit: '%', status: 'normal' },
+                        battery: { value: 94, unit: '%', status: 'good' }
+                    }
+                }
+            ];
+
+            renderNodes();
+            updateNodeStats();
+            updateSystemStatus('Demo Mode', true);
+        }
+
+        // Render nodes in grid
+        function renderNodes() {
+            const nodesGrid = document.getElementById('nodesGrid');
+            const statusFilter = document.getElementById('statusFilter').value;
+            const typeFilter = document.getElementById('typeFilter').value;
+            const searchTerm = document.getElementById('nodeSearch').value.toLowerCase();
+
+            let filteredNodes = nodes.filter(node => {
+                // Status filter
+                if (statusFilter !== 'all') {
+                    const isOnline = node.connected === true;
+                    if (statusFilter === 'online' && !isOnline) return false;
+                    if (statusFilter === 'offline' && isOnline) return false;
+                }
+
+                // Type filter
+                if (typeFilter !== 'all' && node.type !== typeFilter) return false;
+
+                // Search filter
+                if (searchTerm) {
+                    return node.name.toLowerCase().includes(searchTerm) ||
+                        node.id.toLowerCase().includes(searchTerm) ||
+                        node.location.toLowerCase().includes(searchTerm);
+                }
+
+                return true;
+            });
+
+            if (filteredNodes.length === 0) {
+                nodesGrid.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1/-1;">
+                        <i class="fas fa-microchip"></i>
+                        <h3>No Connected Nodes</h3>
+                        <p>No IoT nodes are currently connected to the system.</p>
+                        <p style="margin-top: 1rem; font-size: 0.9rem;">Check your network connection or wait for nodes to come online.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            nodesGrid.innerHTML = filteredNodes.map(node => `
+                <div class="node-card ${!node.connected ? 'offline' : ''}" data-node-id="${node.id}">
+                    <div class="node-status-badge ${node.connected ? 'online' : 'offline'}">
+                        ${node.connected ? '● ONLINE' : '○ OFFLINE'}
+                    </div>
+                    <div class="node-header">
+                        <div class="node-icon">
+                            <i class="fas ${getNodeIcon(node.type)}"></i>
+                        </div>
+                        <div class="node-info">
+                            <div class="node-name">${node.name}</div>
+                            <div class="node-location">
+                                <i class="fas fa-map-marker-alt"></i>
+                                ${node.location}
+                            </div>
+                            <div class="node-location" style="font-size: 0.7rem; margin-top: 0.25rem;">
+                                <i class="fas fa-barcode"></i>
+                                ID: ${node.id}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="node-body">
+                        <div class="sensor-readings">
+                            <div class="sensor-reading">
+                                <div class="sensor-reading-label">
+                                    <i class="fas fa-tilt"></i> Tilt Angle
+                                </div>
+                                <div class="sensor-reading-value">
+                                    ${node.sensors.tilt.value}
+                                    <span class="sensor-reading-unit">${node.sensors.tilt.unit}</span>
+                                </div>
+                            </div>
+                            <div class="sensor-reading">
+                                <div class="sensor-reading-label">
+                                    <i class="fas fa-temperature-high"></i> Temperature
+                                </div>
+                                <div class="sensor-reading-value">
+                                    ${node.sensors.temperature.value}
+                                    <span class="sensor-reading-unit">${node.sensors.temperature.unit}</span>
+                                </div>
+                            </div>
+                            <div class="sensor-reading">
+                                <div class="sensor-reading-label">
+                                    <i class="fas fa-tint"></i> Humidity
+                                </div>
+                                <div class="sensor-reading-value">
+                                    ${node.sensors.humidity.value}
+                                    <span class="sensor-reading-unit">${node.sensors.humidity.unit}</span>
+                                </div>
+                            </div>
+                            <div class="sensor-reading">
+                                <div class="sensor-reading-label">
+                                    <i class="fas fa-battery-full"></i> Battery
+                                </div>
+                                <div class="sensor-reading-value">
+                                    ${node.sensors.battery.value}
+                                    <span class="sensor-reading-unit">${node.sensors.battery.unit}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="node-meta">
+                            <span><i class="fas fa-clock"></i> Last update: ${formatTime(node.lastUpdate)}</span>
+                            <span><i class="fas fa-signal"></i> Signal: Good</span>
+                        </div>
+                        <div class="node-actions">
+                            <button class="node-action-btn" onclick="viewNodeDetails('${node.id}')">
+                                <i class="fas fa-chart-line"></i> Details
+                            </button>
+                            <button class="node-action-btn" onclick="locateNode('${node.id}')">
+                                <i class="fas fa-map-marker-alt"></i> Locate
+                            </button>
+                            <button class="node-action-btn" onclick="testNodeConnection('${node.id}')">
+                                <i class="fas fa-plug"></i> Test
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Get icon based on node type
+        function getNodeIcon(type) {
+            const icons = {
+                bridge: 'fa-bridge',
+                tunnel: 'fa-tunnel',
+                dam: 'fa-water',
+                structure: 'fa-building'
+            };
+            return icons[type] || 'fa-microchip';
+        }
+
+        // Format time
+        function formatTime(date) {
+            const diff = Math.floor((new Date() - new Date(date)) / 1000);
+            if (diff < 60) return `${diff} seconds ago`;
+            if (diff < 3600) return `${Math.floor(diff / 60)} minutes ago`;
+            if (diff < 86400) return `${Math.floor(diff / 3600)} hours ago`;
+            return `${Math.floor(diff / 86400)} days ago`;
+        }
+
+        // Update node statistics
+        function updateNodeStats() {
+            const total = nodes.length;
+            const online = nodes.filter(n => n.connected === true).length;
+            const offline = total - online;
+
+            document.getElementById('totalNodes').textContent = total;
+            document.getElementById('onlineNodes').textContent = online;
+            document.getElementById('offlineNodes').textContent = offline;
+            document.getElementById('nodeBadge').textContent = total;
+        }
+
+        // Update system status
+        function updateSystemStatus(status, isOnline) {
+            const statusElement = document.getElementById('espStatus');
+            if (statusElement) {
+                statusElement.textContent = status;
+                statusElement.className = `status-value ${isOnline ? 'online' : 'offline'}`;
+            }
+        }
+
+        // Filter nodes
+        window.filterNodes = function () {
+            renderNodes();
+        };
+
+        // Search nodes
+        window.searchNodes = function () {
+            renderNodes();
+        };
+
+        // Refresh nodes
+        window.refreshNodes = function () {
+            if (socket && socket.connected) {
+                socket.emit('get_nodes');
+                showToast('Refreshing node list...', 'info');
+            } else {
+                renderNodes();
+                showToast('Using cached node data', 'info');
+            }
+        };
+
+        // View node details
+        window.viewNodeDetails = function (nodeId) {
+            const node = nodes.find(n => n.id === nodeId);
+            if (node) {
+                showToast(`Viewing details for ${node.name}`, 'info');
+                // In production, navigate to node details page or open modal
+                console.log('Node details:', node);
+            }
+        };
+
+        // Locate node on map
+        window.locateNode = function (nodeId) {
+            showToast(`Locating node ${nodeId} on map...`, 'info');
+            // In production, redirect to map with node highlighted
+            setTimeout(() => {
+                window.location.href = '/map';
+            }, 1000);
+        };
+
+        // Test node connection
+        window.testNodeConnection = function (nodeId) {
+            const node = nodes.find(n => n.id === nodeId);
+            if (node && socket && socket.connected) {
+                socket.emit('ping_node', { nodeId: nodeId });
+                showToast(`Testing connection to ${node.name}...`, 'info');
+
+                // Simulate response
+                setTimeout(() => {
+                    showToast(`${node.name} is responding`, 'success');
+                }, 1000);
+            } else if (node) {
+                showToast(`${node.name} is ${node.connected ? 'online' : 'offline'}`, node.connected ? 'success' : 'error');
+            }
+        };
+
+        // Show toast notification
+        function showToast(message, type = 'info') {
+            const toastContainer = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i>
+                <div class="toast-content">
+                    <div class="toast-title">${type.charAt(0).toUpperCase() + type.slice(1)}</div>
+                    <div class="toast-message">${message}</div>
+                </div>
+                <button class="toast-close" onclick="this.parentElement.remove()">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            toastContainer.appendChild(toast);
+            setTimeout(() => {
+                if (toast.parentElement) toast.remove();
+            }, 5000);
+        }
+
+        // Simulate real-time updates (for demo mode)
+        function startSimulation() {
+            if (refreshInterval) clearInterval(refreshInterval);
+
+            refreshInterval = setInterval(() => {
+                if (nodes.length > 0 && !socket?.connected) {
+                    // Update sensor values randomly for demo
+                    nodes.forEach(node => {
+                        if (node.connected) {
+                            node.sensors.tilt.value = Number((Math.random() * 3 + 0.5).toFixed(1));
+                            node.sensors.temperature.value = Number((22 + Math.random() * 8).toFixed(1));
+                            node.sensors.humidity.value = Number((50 + Math.random() * 30).toFixed(0));
+                            node.sensors.battery.value = Number((75 + Math.random() * 20).toFixed(0));
+                            node.lastUpdate = new Date();
+                        }
+                    });
+                    renderNodes();
+                }
+            }, 10000);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            updateUserInfo();
+
+            // Try to connect to WebSocket server
+            initSocketConnection();
+
+            // Start simulation for demo mode
+            startSimulation();
+
+            // Update alert badge (from alerts)
+            const alertCount = 3; // This would come from alerts system
+            const alertBadges = document.querySelectorAll('#alertBadge, #headerAlertBadge');
+            alertBadges.forEach(badge => {
+                if (badge) badge.textContent = alertCount;
+            });
+        });
+    </script>
+</body>
+
+</html>
